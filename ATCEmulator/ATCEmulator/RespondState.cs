@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ATCEmulator
 {
-    class Program
+    public enum RespondState
     {
-        static void Main(string[] args)
-        {
-        }
+        Answer,
+        Reject
     }
 }
