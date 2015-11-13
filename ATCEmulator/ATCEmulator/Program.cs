@@ -16,23 +16,19 @@ namespace ATCEmulator
             ATC AtcStation = new ATC(new List<IPort>() { new Port(), new Port(), new Port(), new Port() });
 
             var User1 = AtcStation.ConcludeContract();
-            User1.Plug();
 
             var User2 = AtcStation.ConcludeContract();
-            User2.Plug();
 
             var User3 = AtcStation.ConcludeContract();
-            User3.Plug();
 
             var User4 = AtcStation.ConcludeContract();
-            User4.Plug();
 
-            Call call = User1.Call;
-            IAsyncResult result = call.BeginInvoke(User2.Number, null, null);
-            Call call2 = User3.Call;
-            IAsyncResult result1 = call2.BeginInvoke(User4.Number, null, null);
+            User1.SendRequest(User2.Number);
+            User2.Answer();
+            User2.TerminateConnection();
 
-            Thread.Sleep(5000);
+            User3.SendRequest(User1.Number);
+
         }
     }
 }
