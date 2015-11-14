@@ -8,7 +8,6 @@ namespace ATCEmulator
 {
     public class ATC
     {
-        private static Random _Random = new Random();
 
         protected IDictionary<IPort, bool> _Ports;
         protected IDictionary<PhoneNumber, IPort> _RoutingPorts;
@@ -16,6 +15,8 @@ namespace ATCEmulator
 
         protected ICollection<CallInfo> _ConnectingCalls;
         protected ICollection<CallInfo> _ActiveCalls;
+
+        public event EventHandler<CallInfo> OnCall;
 
         public ATC(ICollection<IPort> ports)
         {
@@ -27,14 +28,12 @@ namespace ATCEmulator
             this._ActiveCalls = new List<CallInfo>();
         }
 
-        public ITerminal ConcludeContract()
+        public void NewContract(object sender, ITerminal terminal)
         {
-            ITerminal terminal = null; 
             var freePort = _Ports.FirstOrDefault(x => x.Value == true).Key;
 
             if (freePort != null)
             {
-                terminal = new Terminal(new PhoneNumber("100-100-" + _Random.Next(1, 100).ToString()));
                 _RoutingPorts.Add(terminal.Number, freePort);
                 _Ports[freePort] = false;
                 _Terminals.Add(terminal);
@@ -44,7 +43,6 @@ namespace ATCEmulator
             }
 
             Console.WriteLine("A Новый терминал с номером {0}.", terminal.Number.GetValue);
-            return terminal;
         }
 
         protected void ConnectPortAndTerminal(IPort port, ITerminal terminal)
@@ -72,7 +70,7 @@ namespace ATCEmulator
 
             if(callInfo != null)
             {
-                callInfo.SetDuration(LocalTimeSpan.Duration(callInfo.StartedAt, LocalDateTime.Now));
+                callInfo.Duration = LocalTimeSpan.Duration(callInfo.StartedAt, LocalDateTime.Now);
                 _ActiveCalls.Remove(callInfo);
 
                 Console.WriteLine("A Заверешение звонка пришло от {0} к {1}.",
@@ -86,7 +84,14 @@ namespace ATCEmulator
                 {
                     targetPort.CallWasCompleted(e);
                 }
+
+                OnCall(this, callInfo);
             }
+        }
+
+        public void ClearEvents()
+        {
+            this.OnCall = null;
         }
 
         protected void ProcessRequest(object sender, Request e)
@@ -127,7 +132,7 @@ namespace ATCEmulator
 
                 if (e.State == RespondState.Answer)
                 {
-                    callInfo.SetStartTime(LocalDateTime.Now);
+                    callInfo.StartedAt = LocalDateTime.Now;
                     _ActiveCalls.Add(callInfo);
 
                     Console.WriteLine("A Ответ на звонок от {0} к {1} пришел на АТС. Ответ {2}.",
