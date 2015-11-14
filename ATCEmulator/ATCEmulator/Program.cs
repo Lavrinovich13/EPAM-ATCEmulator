@@ -13,22 +13,37 @@ namespace ATCEmulator
 
         static void Main(string[] args)
         {
-            ATC AtcStation = new ATC(new List<IPort>() { new Port(), new Port(), new Port(), new Port() });
+            var billingSystem = new BillingSystem("+37529", 100100100);
+            var atcStation = new ATC(new List<IPort>() { new Port(), new Port(), new Port(), new Port()});
 
-            var User1 = AtcStation.ConcludeContract();
+            //out in methods?
+            atcStation.OnCall += billingSystem.AddCall;
+            billingSystem.OnContract += atcStation.NewContract;
 
-            var User2 = AtcStation.ConcludeContract();
+            var User1 = billingSystem.ConcludeContract(new FreeMinutesTariffPlan());
+            var User2 = billingSystem.ConcludeContract(new FreeMinutesTariffPlan());
+            var User3 = billingSystem.ConcludeContract(new FreeMinutesTariffPlan());
+            var User4 = billingSystem.ConcludeContract(new FreeMinutesTariffPlan());
 
-            var User3 = AtcStation.ConcludeContract();
+            User1.SendRequest(User2.Number);
+            User2.Answer();
 
-            var User4 = AtcStation.ConcludeContract();
+            User3.SendRequest(User2.Number);
+            User4.SendRequest(User3.Number);
+            User2.TerminateConnection();
 
             User1.SendRequest(User2.Number);
             User2.Answer();
             User2.TerminateConnection();
 
-            User3.SendRequest(User1.Number);
+            User3.Answer();
+            User4.TerminateConnection();
 
+            User3.SendRequest(User1.Number);
+            User1.Answer();
+            User1.TerminateConnection();
+
+          var info = billingSystem.GetInfoAboutCalls((x) => { return x.StartedAt.ToShortDateString() == new DateTime(2015, 12, 9).ToShortDateString(); });
         }
     }
 }

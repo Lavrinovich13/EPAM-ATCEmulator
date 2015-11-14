@@ -4,3 +4,5 @@ D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\bin\Debug\ATCEm
 D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\bin\Debug\ATCEmulator.pdb
 D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\obj\Debug\ATCEmulator.exe
 D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\obj\Debug\ATCEmulator.pdb
+D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\bin\Debug\log4net.dll
+D:\3 курс проекты\ATCEmulator\ATCEmulator\ATCEmulator\bin\Debug\log4net.xml
