@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ATCEmulator
 {
-    public class TariffPlan
+    public interface ILogger
     {
+        public void WriteToLog(string log);
     }
 }

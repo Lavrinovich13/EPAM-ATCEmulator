@@ -8,5 +8,8 @@ namespace ATCEmulator
 {
     public interface ITariffPlan
     {
+        string Name { get; }
+        string Description { get; }
+        double CalculatePriceOfCall(CallInfo call);
     }
 }

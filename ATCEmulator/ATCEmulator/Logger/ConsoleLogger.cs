@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace ATCEmulator
 {
-    public interface IBillingSystem
+    public class ConsoleLogger : ILogger
     {
-
+        public void WriteToLog(string log)
+        {
+            Console.WriteLine(log);
+        }
     }
 }
