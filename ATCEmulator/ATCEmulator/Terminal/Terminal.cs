@@ -9,14 +9,17 @@ namespace ATCEmulator
 {
     public class Terminal : ITerminal
     {
+        protected ILogger _Logger;
+
         protected PhoneNumber _PhoneNumber;
         protected Request _ActiveCall;
 
         protected bool _IsPlugToPort = false;
 
-        public Terminal(PhoneNumber number)
+        public Terminal(PhoneNumber number, ILogger logger)
         {
             this._PhoneNumber = number;
+            this._Logger = logger;
         }
 
         public event EventHandler OnPluging;
@@ -50,10 +53,10 @@ namespace ATCEmulator
             {
                 this.TerminateConnection();
             }
-            Console.WriteLine("T Абонент {0} вызывает {1}. ",
-                _PhoneNumber.GetValue, targetNumber.GetValue);
-
             _ActiveCall = new Request(_PhoneNumber, targetNumber);
+
+            _Logger.WriteToLog("-> Send request");
+            _Logger.WriteToLog(ObjectToLogString.ToLogString(_ActiveCall));
 
             OnRequest(this, _ActiveCall);
         }
@@ -75,8 +78,8 @@ namespace ATCEmulator
         {
             var respond = new Respond(state, request);
 
-            Console.WriteLine("T На звонок от {0} {1} ответил {2}. ",
-                request.SourceNumber.GetValue, request.TargetNumber.GetValue, state.ToString());
+            _Logger.WriteToLog("-> Incoming response");
+            _Logger.WriteToLog(ObjectToLogString.ToLogString(respond));
 
             OnResponse(this, respond);
         }
@@ -85,15 +88,15 @@ namespace ATCEmulator
         {
             OnEndCall(this, new Respond(RespondState.Reject, _ActiveCall));
             _ActiveCall = null;
-            Console.WriteLine("T Звонок к {0} окончен. ",
-                _PhoneNumber.GetValue);
+
+            _Logger.WriteToLog("-> Call terminate by " + _PhoneNumber.GetValue);
         }
 
         protected void CallWasTerminated(object sender, Respond respond)
         {
             _ActiveCall = null;
-            Console.WriteLine("T Звонок к {0} окончен. ",
-                _PhoneNumber.GetValue);
+
+            _Logger.WriteToLog("-> Call terminate in " + _PhoneNumber.GetValue);
         }
 
         public void RegisterOnPortEvents(IPort port)

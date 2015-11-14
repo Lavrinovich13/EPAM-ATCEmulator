@@ -7,6 +7,7 @@ namespace ATCEmulator
 {
     public class Port : IPort
     {
+        protected ILogger _Logger;
         private PortState _State = PortState.SwitchedOff;
         public PortState GetState
         {
@@ -22,6 +23,11 @@ namespace ATCEmulator
         public event EventHandler<Respond> OnTerminateRequest;
         public event EventHandler<Respond> OnRequestWasCompleted;
 
+        public Port(ILogger logger)
+        {
+            this._Logger = logger;
+        }
+
         public void PlugToTerminal(object sender, EventArgs args)
         {
             if(_State == PortState.SwitchedOff)
@@ -30,7 +36,7 @@ namespace ATCEmulator
                 RegisterOnTerminalEvents(sender as ITerminal);
             }
 
-            Console.WriteLine("P Порт подключен.");
+            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " plug");
         }
 
         public void UnPlugFromTerminal(object sender, EventArgs args)
@@ -42,15 +48,14 @@ namespace ATCEmulator
                 UnsubscribeFromTerminalEvents(sender as ITerminal);
             }
 
-            Console.WriteLine("P Порт выключен.");
+            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " unplug");
         }
 
         public void OutgoingRequest(object sender, Request e)
         {
             _State = PortState.Busy;
 
-            Console.WriteLine("P Исходящий звонок на порте по номеру {1} к {0}.",
-                e.TargetNumber.GetValue, e.SourceNumber.GetValue);
+            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " change state in " + _State);
 
             OnOutgoingRequest(this, e);
         }
@@ -68,9 +73,8 @@ namespace ATCEmulator
             if(e.State == RespondState.Answer)
             {
                 _State = PortState.Busy;
+                _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " change state in " + _State);
             }
-            Console.WriteLine("P Ответ на входящий звонок от {1} пришел на порт по номеру {0}.  Ответ {2}",
-                e.IncomingRequest.TargetNumber.GetValue, e.IncomingRequest.SourceNumber.GetValue, e.State.ToString());
             OnOutgoingRespond(this, e);
         }
 
@@ -78,8 +82,7 @@ namespace ATCEmulator
         {
             _State = PortState.Free;
 
-            Console.WriteLine("P Завершение исходящий звонока пришло на порт по номеру {0} от {1}.",
-                e.IncomingRequest.TargetNumber.GetValue, e.IncomingRequest.SourceNumber.GetValue);
+            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " change state in " + _State);
 
             OnTerminateRequest(this, e);
         }
@@ -88,8 +91,7 @@ namespace ATCEmulator
         {
             _State = PortState.Free;
 
-            Console.WriteLine("P Завершение входящего звонока пришло на порт по номеру {0} от {1}.",
-                e.IncomingRequest.TargetNumber.GetValue, e.IncomingRequest.SourceNumber.GetValue);
+            _Logger.WriteToLog("-> Port change state in " + _State);
 
             OnRequestWasCompleted(this, e);
         }
