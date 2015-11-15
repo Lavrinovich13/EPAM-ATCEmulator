@@ -1,0 +1,6 @@
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\bin\Debug\ATSEmulator.exe.config
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\bin\Debug\ATSEmulator.exe
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\bin\Debug\ATSEmulator.pdb
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\obj\Debug\ATSEmulator.csprojResolveAssemblyReference.cache
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\obj\Debug\ATSEmulator.exe
+C:\Users\Ksenia\Desktop\ATSEmulator\ATSEmulator\ATSEmulator\obj\Debug\ATSEmulator.pdb
