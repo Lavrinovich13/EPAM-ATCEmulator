@@ -22,6 +22,8 @@ namespace ATSEmulator
         public event EventHandler<Response> OnTerminateRequest;
         public event EventHandler<Response> OnRequestWasCompleted;
 
+        public event EventHandler<Request> OnUnplaged;
+
         public Port(ILogger logger)
         {
             this._Logger = logger;
@@ -29,13 +31,12 @@ namespace ATSEmulator
 
         public void PlugToTerminal(object sender, EventArgs args)
         {
-            if(_State == PortState.SwitchedOff)
+            if (_State == PortState.SwitchedOff)
             {
                 _State = PortState.Free;
                 RegisterOnTerminalEvents(sender as ITerminal);
+                _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " plug");
             }
-
-            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " plug");
         }
 
         public void UnPlugFromTerminal(object sender, EventArgs args)
@@ -44,10 +45,17 @@ namespace ATSEmulator
             {
                 _State = PortState.SwitchedOff;
 
-                UnsubscribeFromTerminalEvents(sender as ITerminal);
-            }
+                var terminal = sender as ITerminal;
+                var terminateCall = terminal._ActiveCall;
 
-            _Logger.WriteToLog("-> Port on number " + (sender as ITerminal).Number.GetValue + " unplug");
+                if (OnUnplaged != null)
+                {
+                    OnUnplaged(this, terminateCall);
+                }
+                UnsubscribeFromTerminalEvents(sender as ITerminal);
+
+                _Logger.WriteToLog("-> Port on number " + terminal.Number.GetValue + " unplug");
+            }
         }
 
         public void OutgoingRequest(object sender, Request request)
@@ -88,7 +96,6 @@ namespace ATSEmulator
         {
             _State = PortState.Free;
 
-            //??
             _Logger.WriteToLog("-> Target port change state in " + _State);
 
             OnRequestWasCompleted(this, response);
@@ -96,8 +103,6 @@ namespace ATSEmulator
 
         protected void RegisterOnTerminalEvents(ITerminal terminal)
         {
-            //it must be virtual
-
             terminal.OnUnPluging += this.UnPlugFromTerminal;
 
             terminal.OnRequest += this.OutgoingRequest;
@@ -116,7 +121,6 @@ namespace ATSEmulator
 
         public void ClearEvents()
         {
-            //too much events
 
             this.OnIncomingRequest = null;
             this.OnOutgoingRequest = null;

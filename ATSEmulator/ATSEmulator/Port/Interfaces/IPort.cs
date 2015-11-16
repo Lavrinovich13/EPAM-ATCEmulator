@@ -20,6 +20,8 @@ namespace ATSEmulator
         event EventHandler<Response> OnRequestWasCompleted;
         event EventHandler<Response> OnTerminateRequest;
 
+        event EventHandler<Request> OnUnplaged;
+
         void OutgoingRequest(object sender, Request request);
         void IncomingRequest(Request e);
 

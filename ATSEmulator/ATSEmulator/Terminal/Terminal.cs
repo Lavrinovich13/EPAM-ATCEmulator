@@ -12,7 +12,7 @@ namespace ATSEmulator
         protected ILogger _Logger;
 
         protected PhoneNumber _PhoneNumber;
-        protected Request _ActiveCall;
+        public Request _ActiveCall { get; protected set; }
 
         protected bool _IsPlugToPort = false;
 
@@ -40,6 +40,7 @@ namespace ATSEmulator
         {
             _IsPlugToPort = false;
             OnUnPluging(this, null);
+            _ActiveCall = null;
         }
 
         public PhoneNumber Number
@@ -113,18 +114,17 @@ namespace ATSEmulator
             _Logger.WriteToLog("-> Call terminate in " + _PhoneNumber.GetValue);
         }
 
-        public void RegisterOnPortEvents(IPort port)
+        public void ConnectToPort(IPort port)
         {
-            //it must be virtual
-
+            this.OnPluging += port.PlugToTerminal;
             port.OnIncomingRequest += (sender, request) => { _ActiveCall = request; };
             port.OnRequestWasCompleted += this.CallWasTerminated;
         }
 
         public void ClearEvents()
         {
-            //or protected?
-
+            this.OnPluging = null;
+            this.OnUnPluging = null;
             this.OnEndCall = null;
             this.OnRequest = null;
             this.OnResponse = null;

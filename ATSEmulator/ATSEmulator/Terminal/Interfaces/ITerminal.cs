@@ -8,6 +8,7 @@ namespace ATSEmulator
     public interface ITerminal
     {
         PhoneNumber Number { get; }
+        Request _ActiveCall { get; }
 
         event EventHandler OnPluging;
         event EventHandler OnUnPluging;
@@ -26,6 +27,6 @@ namespace ATSEmulator
         void Drop();
         void TerminateConnection();
 
-        void RegisterOnPortEvents(IPort port);
+        void ConnectToPort(IPort port);
     }
 }
