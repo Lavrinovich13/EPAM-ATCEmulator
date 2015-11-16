@@ -8,7 +8,7 @@ namespace ATSEmulator
 {
     public class FreeMinutesTariffPlan : ITariffPlan
     {
-        protected static double _FreeMinutes = 100;
+        protected static double _FreeMinutes = 50;
         protected static double _PricePerMinute = 15;
 
         protected static string _Name = "Light";

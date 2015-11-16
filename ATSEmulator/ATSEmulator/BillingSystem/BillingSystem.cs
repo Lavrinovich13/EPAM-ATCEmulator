@@ -23,7 +23,9 @@ namespace ATSEmulator
 
         public ICollection<ITariffPlan> _TariffPlans { get; protected set; }
 
-        public event EventHandler<ITerminal> OnContract; 
+        public event EventHandler<ITerminal> OnContract;
+
+        public IEnumerable<Contract> GetContracts { get { return _CurrentContracts.AsEnumerable(); } }
 
         public BillingSystem(string code, long firstNumber, ILogger logger, ICollection<ITariffPlan> tariffPlans)
         {
@@ -89,7 +91,7 @@ namespace ATSEmulator
         {
             var dateTime = LocalDateTime.Now;
 
-            _Logger.WriteToLog("-> User with number " + phoneNumber.GetValue + " want change tariff");
+            _Logger.WriteToLog("-> User with number " + phoneNumber.GetValue + " want change tariff " + dateTime.ToShortDateString());
 
             var currentContract = _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber);
 
@@ -123,19 +125,21 @@ namespace ATSEmulator
         {
             var calls = _NotPayCalls.Where(x => x.Source == phoneNumber).ToList();
             _PaiedCalls = _PaiedCalls.Concat(calls).ToList();
-            _Debtors.Remove(phoneNumber);
 
             var time = LocalDateTime.Now;
             _LastPayment[phoneNumber] =
                 new DateTime(time.Year, time.Month , _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber).Date.Day);
 
+            _Logger.WriteToLog("User with number " + phoneNumber.GetValue + " pay for calls");
+
+            _Debtors.Remove(phoneNumber);
             _NotPayCalls = _NotPayCalls.Where(x => x.Source != phoneNumber).ToList();
         }
 
         public void DayChanged(object sender, DateTime date)
         {
             _Debtors = _LastPayment
-                .Where(x => x.Value.Day <= date.Day && ((x.Value.Month >= 11 ? x.Value.Month - 12 : x.Value.Month) + 2 == date.Month))
+                .Where(x => x.Value.Day <= date.Day && x.Value.AddMonths(2).Month == date.Month)
                 .Select(x => x.Key)
                 .ToList();
             RefreshTariffs(date.Day);

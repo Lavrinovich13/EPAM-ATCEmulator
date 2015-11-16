@@ -67,6 +67,8 @@ namespace ATSEmulator
             var senderPort = _RoutingPorts[request.SourceNumber];
             var targetPort = _RoutingPorts[request.TargetNumber];
 
+            var callInfo = new CallInfo(request.SourceNumber, request.TargetNumber);
+
             if (OnConnecting != null && !OnConnecting(request.SourceNumber))
             {
                 RejectRequest(request, ResponseState.NotEnoughtMoney, senderPort);
@@ -85,7 +87,6 @@ namespace ATSEmulator
             }
             else
             {
-                var callInfo = new CallInfo(request.SourceNumber, request.TargetNumber);
                 this._ConnectingCalls.Add(callInfo);
                 AcceptRequest(request, targetPort);
             }
@@ -104,7 +105,12 @@ namespace ATSEmulator
             var response = new Response(responseState, request);
             _Logger.WriteToLog("-> ATS reject");
             _Logger.WriteToLog(ObjectToLogString.ToLogString(response));
+
+            CallInfo call = new CallInfo(request.SourceNumber, request.TargetNumber);
+            call.StartedAt = LocalDateTime.Now;
+
             port.CallWasCompleted(response);
+            OnTerminateCall(this, call);
         }
 
         protected void ProcessResponse(object sender, Response response)
@@ -130,7 +136,7 @@ namespace ATSEmulator
                 }
                 else
                 {
-                    senderPort.CallWasCompleted(response);
+                    TerminateCall(_ConnectingCalls, response, targetPort);
                 }
             }
         }
@@ -150,39 +156,44 @@ namespace ATSEmulator
                 _Logger.WriteToLog("-> ATS process end on");
                 _Logger.WriteToLog(ObjectToLogString.ToLogString(response.IncomingRequest));
 
-                TerminateCall(_ActiveCalls, response.IncomingRequest, (sender as IPort));
-
-                OnTerminateCall(this, callInfo);
+                TerminateCall(_ActiveCalls, response, (sender as IPort));
             }
         }
 
         protected void TerminateAllConnections(object sender, Request request)
         {
-            TerminateCall(_ConnectingCalls, request, (sender as IPort));
-            TerminateCall(_ActiveCalls, request, (sender as IPort));
+            TerminateCall(_ConnectingCalls, new Response(ResponseState.Offline, request), (sender as IPort));
+            TerminateCall(_ActiveCalls, new Response(ResponseState.Offline, request), (sender as IPort));
         }
 
-        protected void TerminateCall(ICollection<CallInfo> calls, Request request, IPort sender)
+        protected void TerminateCall(ICollection<CallInfo> calls, Response response, IPort sender)
         {
-            var terminateCall = 
-                calls.SingleOrDefault(x => x.Source == request.SourceNumber && x.Target == request.TargetNumber);
+            var terminateCall =
+                calls.SingleOrDefault(x => x.Source == response.IncomingRequest.SourceNumber &&
+                    x.Target == response.IncomingRequest.TargetNumber);
 
             if (terminateCall != null)
             {
                 calls.Remove(terminateCall);
 
-                var senderPort = _RoutingPorts[request.SourceNumber];
-                var targetPort = _RoutingPorts[request.TargetNumber];
+                var senderPort = _RoutingPorts[response.IncomingRequest.SourceNumber];
+                var targetPort = _RoutingPorts[response.IncomingRequest.TargetNumber];
 
-                
-                    if (senderPort == sender)
-                    {
-                        targetPort.CallWasCompleted(null);
-                    }
-                    else
-                    {
-                        senderPort.CallWasCompleted(null);
-                    }
+                if (senderPort == sender)
+                {
+                    targetPort.CallWasCompleted(response);
+                }
+                else
+                {
+                    senderPort.CallWasCompleted(response);
+                }
+
+                if (terminateCall.Duration == new TimeSpan(0, 0, 0))
+                {
+                    terminateCall.StartedAt = LocalDateTime.Now;
+                }
+
+                OnTerminateCall(this, terminateCall);
             }
         }
 

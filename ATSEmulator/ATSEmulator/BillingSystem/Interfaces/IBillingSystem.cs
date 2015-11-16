@@ -8,6 +8,7 @@ namespace ATSEmulator
 {
     public interface IBillingSystem
     {
+        IEnumerable<Contract> GetContracts { get; }
         event EventHandler<ITerminal> OnContract;
 
         ITerminal ConcludeContract(ITariffPlan tariffPlan);
