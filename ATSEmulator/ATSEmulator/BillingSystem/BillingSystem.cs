@@ -53,21 +53,25 @@ namespace ATSEmulator
 
         public ITerminal ConcludeContract(ITariffPlan tariffPlan)
         {
-            var phoneNumber = new PhoneNumber(_NumberCode + _Number.ToString());
-            _Number++;
+            if (_TariffPlans.Select(x => tariffPlan.GetType()).Contains(tariffPlan.GetType()))
+            {
+                var phoneNumber = new PhoneNumber(_NumberCode + _Number.ToString());
+                _Number++;
 
-            var dateTime = LocalDateTime.Now;
-            var newContract = new Contract(phoneNumber, tariffPlan.GetNewInstance(), dateTime);
-            _CurrentContracts.Add(newContract);
-            _LastPayment.Add(phoneNumber, dateTime);
+                var dateTime = LocalDateTime.Now;
+                var newContract = new Contract(phoneNumber, tariffPlan.GetNewInstance(), dateTime);
+                _CurrentContracts.Add(newContract);
+                _LastPayment.Add(phoneNumber, dateTime);
 
-            var newTerminal = new Terminal(phoneNumber, _Logger);
+                var newTerminal = new Terminal(phoneNumber, _Logger);
 
-            _Logger.WriteToLog("-> Billing system conclude contract");
-            _Logger.WriteToLog(ObjectToLogString.ToLogString(newContract));
+                _Logger.WriteToLog("-> Billing system conclude contract");
+                _Logger.WriteToLog(ObjectToLogString.ToLogString(newContract));
 
-            OnContract(this, newTerminal);
-            return newTerminal;
+                OnContract(this, newTerminal);
+                return newTerminal;
+            }
+            return null;
         }
 
         protected void AddCall(object sender, CallInfo callInfo)
@@ -89,21 +93,24 @@ namespace ATSEmulator
 
         public bool ChangeTariffPlan(PhoneNumber phoneNumber, ITariffPlan tariffPlan)
         {
-            var dateTime = LocalDateTime.Now;
-
-            _Logger.WriteToLog("-> User with number " + phoneNumber.GetValue + " want change tariff " + dateTime.ToShortDateString());
-
-            var currentContract = _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber);
-
-            if(currentContract != null && currentContract.Date.Month != dateTime.Month)
+            if (_TariffPlans.Select(x => tariffPlan.GetType()).Contains(tariffPlan.GetType()))
             {
-                 var newContract = new Contract(phoneNumber, tariffPlan, dateTime);
-                 _CurrentContracts.Remove(currentContract);
-                 _OldContracts.Add(currentContract);
+                var dateTime = LocalDateTime.Now;
 
-                 _CurrentContracts.Add(newContract);
-                 _Logger.WriteToLog("Tariff changed on " + tariffPlan.Name);
-                 return true;
+                _Logger.WriteToLog("-> User with number " + phoneNumber.GetValue + " want change tariff " + dateTime.ToShortDateString());
+
+                var currentContract = _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber);
+
+                if (currentContract != null && currentContract.Date.Month != dateTime.Month)
+                {
+                    var newContract = new Contract(phoneNumber, tariffPlan, dateTime);
+                    _CurrentContracts.Remove(currentContract);
+                    _OldContracts.Add(currentContract);
+
+                    _CurrentContracts.Add(newContract);
+                    _Logger.WriteToLog("Tariff changed on " + tariffPlan.Name);
+                    return true;
+                }
             }
             _Logger.WriteToLog("Tariff was not changed");
             return false;
