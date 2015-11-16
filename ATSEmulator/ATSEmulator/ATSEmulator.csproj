@@ -43,19 +43,20 @@
   <ItemGroup>
     <Compile Include="ATS\ATS.cs" />
     <Compile Include="ATS\CallInfo.cs" />
+    <Compile Include="ATS\Interfaces\IAts.cs" />
     <Compile Include="ATS\PhoneNumber.cs" />
     <Compile Include="BillingSystem\BillingSystem.cs" />
     <Compile Include="BillingSystem\Contract.cs" />
-    <Compile Include="BillingSystem\FavoriteNumbersTariffPlan.cs" />
-    <Compile Include="BillingSystem\FreeMinutesTariffPlan.cs" />
-    <Compile Include="BillingSystem\IBillingSystem.cs" />
-    <Compile Include="BillingSystem\ITariffPlan.cs" />
+    <Compile Include="BillingSystem\TariffPlans\FavoriteNumbersTariffPlan.cs" />
+    <Compile Include="BillingSystem\TariffPlans\FreeMinutesTariffPlan.cs" />
+    <Compile Include="BillingSystem\Interfaces\IBillingSystem.cs" />
+    <Compile Include="BillingSystem\Interfaces\ITariffPlan.cs" />
     <Compile Include="DateTime\LocalDataTime.cs" />
     <Compile Include="DateTime\LocalTimeSpan.cs" />
     <Compile Include="Logger\ConsoleLogger.cs" />
-    <Compile Include="Logger\ILogger.cs" />
+    <Compile Include="Logger\Interfaces\ILogger.cs" />
     <Compile Include="Logger\ObjectToLogString.cs" />
-    <Compile Include="Port\IPort.cs" />
+    <Compile Include="Port\Interfaces\IPort.cs" />
     <Compile Include="Port\Port.cs" />
     <Compile Include="Port\PortState.cs" />
     <Compile Include="Program.cs" />
@@ -63,8 +64,7 @@
     <Compile Include="Request\Request.cs" />
     <Compile Include="Response\Response.cs" />
     <Compile Include="Response\ResponseState.cs" />
-    <Compile Include="Subscriber.cs" />
-    <Compile Include="Terminal\ITerminal.cs" />
+    <Compile Include="Terminal\Interfaces\ITerminal.cs" />
     <Compile Include="Terminal\Terminal.cs" />
   </ItemGroup>
   <ItemGroup>

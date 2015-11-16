@@ -14,14 +14,14 @@ namespace ATSEmulator
         static void Main(string[] args)
         {
             var logger = new ConsoleLogger();
-            var billingSystem = new BillingSystem("+37529", 100100100, logger);
-            var atsStation = new ATS(new List<IPort>() { new Port(logger), new Port(logger), new Port(logger), new Port(logger) }, logger);
+            var tariffPlans = new List<ITariffPlan> { new FavoriteNumbersTariffPlan(), new FreeMinutesTariffPlan()};
+            var billingSystem = new BillingSystem("+37529", 100100100, logger, tariffPlans);
+            var atsStation = new ATS(new List<IPort>() { new Port(logger), new Port(logger), new Port(logger), new Port(logger)}, logger);
 
-            //out in methods?
+            billingSystem.ConnectToATS(atsStation);
+            atsStation.ConnectToBillingSystem(billingSystem);
+
             LocalDateTime.OnDayChanged += billingSystem.DayChanged;
-            atsStation.OnTerminateCall += billingSystem.AddCall;
-            billingSystem.OnContract += atsStation.NewContract;
-            atsStation.OnConnecting += billingSystem.IsDebtor;
 
             var User1 = billingSystem.ConcludeContract(new FreeMinutesTariffPlan());
             User1.Plug();
