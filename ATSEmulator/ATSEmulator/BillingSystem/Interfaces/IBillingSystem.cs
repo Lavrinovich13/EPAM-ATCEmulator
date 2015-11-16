@@ -8,9 +8,9 @@ namespace ATSEmulator
 {
     public interface IBillingSystem
     {
-        ITerminal ConcludeContract(ITariffPlan tariffPlan);
+        event EventHandler<ITerminal> OnContract;
 
-        void AddCall(object sender, CallInfo callInfo);
+        ITerminal ConcludeContract(ITariffPlan tariffPlan);
 
         bool ChangeTariffPlan(PhoneNumber phoneNumber, ITariffPlan tariffPlan);
 
@@ -20,10 +20,12 @@ namespace ATSEmulator
 
         void Pay(PhoneNumber phoneNumber);
 
-        void ClearEvents();
-
         void DayChanged(object sender, DateTime date);
 
         bool IsDebtor(PhoneNumber phoneNumber);
+
+        void ConnectToATS(ATS ats);
+
+        void ClearEvents();
     }
 }

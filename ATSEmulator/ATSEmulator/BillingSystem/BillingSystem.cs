@@ -13,32 +13,40 @@ namespace ATSEmulator
         protected long _Number;
 
         protected ICollection<Contract> _OldContracts;
-        protected ICollection<Contract> _NewContracts;
+        protected ICollection<Contract> _CurrentContracts;
 
         protected ICollection<CallInfo> _NotPayCalls;
         protected ICollection<CallInfo> _PaiedCalls;
 
-        protected IList<PhoneNumber> _Debtors;
+        protected ICollection<PhoneNumber> _Debtors;
         protected IDictionary<PhoneNumber, DateTime> _LastPayment;
 
-        public IList<ITariffPlan> _TariffPlans { get; protected set; }
+        public ICollection<ITariffPlan> _TariffPlans { get; protected set; }
+
         public event EventHandler<ITerminal> OnContract; 
 
-        public BillingSystem(string code, long firstNumber, ILogger logger)
+        public BillingSystem(string code, long firstNumber, ILogger logger, ICollection<ITariffPlan> tariffPlans)
         {
-            //TariffPlans
             this._Logger = logger;
 
             this._NumberCode = code;
             this._Number = firstNumber;
 
             this._OldContracts = new List<Contract>();
-            this._NewContracts = new List<Contract>();
+            this._CurrentContracts = new List<Contract>();
             this._NotPayCalls = new List<CallInfo>();
             this._PaiedCalls = new List<CallInfo>();
 
             this._Debtors = new List<PhoneNumber>();
             this._LastPayment = new Dictionary<PhoneNumber, DateTime>();
+
+            this._TariffPlans = tariffPlans;
+        }
+
+        public void ConnectToATS(ATS ats)
+        {
+            ats.OnConnecting += this.IsDebtor;
+            ats.OnTerminateCall += this.AddCall;
         }
 
         public ITerminal ConcludeContract(ITariffPlan tariffPlan)
@@ -48,7 +56,7 @@ namespace ATSEmulator
 
             var dateTime = LocalDateTime.Now;
             var newContract = new Contract(phoneNumber, tariffPlan.GetNewInstance(), dateTime);
-            _NewContracts.Add(newContract);
+            _CurrentContracts.Add(newContract);
             _LastPayment.Add(phoneNumber, dateTime);
 
             var newTerminal = new Terminal(phoneNumber, _Logger);
@@ -57,14 +65,13 @@ namespace ATSEmulator
             _Logger.WriteToLog(ObjectToLogString.ToLogString(newContract));
 
             OnContract(this, newTerminal);
-
             return newTerminal;
         }
 
-        public void AddCall(object sender, CallInfo callInfo)
+        protected void AddCall(object sender, CallInfo callInfo)
         {
             var currentTariffPlan = 
-                this._NewContracts
+                this._CurrentContracts
                 .Where(x => x.Number == callInfo.Source)
                 .OrderBy(x => x.Date)
                 .Last()
@@ -81,16 +88,18 @@ namespace ATSEmulator
         public bool ChangeTariffPlan(PhoneNumber phoneNumber, ITariffPlan tariffPlan)
         {
             var dateTime = LocalDateTime.Now;
+
             _Logger.WriteToLog("-> User with number " + phoneNumber.GetValue + " want change tariff");
-            var currentContract = _NewContracts.SingleOrDefault(x => x.Number == phoneNumber);
+
+            var currentContract = _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber);
 
             if(currentContract != null && currentContract.Date.Month != dateTime.Month)
             {
                  var newContract = new Contract(phoneNumber, tariffPlan, dateTime);
-                 _NewContracts.Remove(currentContract);
+                 _CurrentContracts.Remove(currentContract);
                  _OldContracts.Add(currentContract);
 
-                 _NewContracts.Add(newContract);
+                 _CurrentContracts.Add(newContract);
                  _Logger.WriteToLog("Tariff changed on " + tariffPlan.Name);
                  return true;
             }
@@ -118,20 +127,13 @@ namespace ATSEmulator
 
             var time = LocalDateTime.Now;
             _LastPayment[phoneNumber] =
-                new DateTime(time.Year, time.Month , _NewContracts.SingleOrDefault(x => x.Number == phoneNumber).Date.Day);
+                new DateTime(time.Year, time.Month , _CurrentContracts.SingleOrDefault(x => x.Number == phoneNumber).Date.Day);
 
             _NotPayCalls = _NotPayCalls.Where(x => x.Source != phoneNumber).ToList();
         }
 
-        public void ClearEvents()
-        {
-            this.OnContract = null;
-        }
-
         public void DayChanged(object sender, DateTime date)
         {
-            if (date.Month == 1)
-            { }
             _Debtors = _LastPayment
                 .Where(x => x.Value.Day <= date.Day && ((x.Value.Month >= 11 ? x.Value.Month - 12 : x.Value.Month) + 2 == date.Month))
                 .Select(x => x.Key)
@@ -141,7 +143,7 @@ namespace ATSEmulator
 
         protected void RefreshTariffs(int day)
         {
-            _NewContracts = _NewContracts
+            _CurrentContracts = _CurrentContracts
                 .Select(x => x.Date.Day == day ? new Contract(x.Number, x.TariffPlan.GetNewInstance(), x.Date) : x)
                 .ToList();
         }
@@ -149,6 +151,11 @@ namespace ATSEmulator
         public bool IsDebtor(PhoneNumber phoneNumber)
         {
             return !_Debtors.Contains(phoneNumber);
+        }
+
+        public void ClearEvents()
+        {
+            this.OnContract = null;
         }
     }
 }

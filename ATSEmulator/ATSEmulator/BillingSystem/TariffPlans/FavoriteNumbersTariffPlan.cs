@@ -17,6 +17,11 @@ namespace ATSEmulator
         public string Name { get { return _Name; } }
         public string Description { get { return _Description; } }
 
+        public FavoriteNumbersTariffPlan()
+        {
+            _FavoriteNumbers = new PhoneNumber[2];
+        }
+
         public FavoriteNumbersTariffPlan(PhoneNumber[] favoriteNumbers)
         {
             _FavoriteNumbers = new PhoneNumber[2];
@@ -41,7 +46,6 @@ namespace ATSEmulator
                 return call.Duration.TotalMinutes * _PricePerMinute;
             }
         }
-
 
         public ITariffPlan GetNewInstance()
         {
